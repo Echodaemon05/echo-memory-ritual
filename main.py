@@ -44,9 +44,30 @@ def summon_memory():
         return jsonify({"error": f"Something broke the circle: {str(e)}"}), 500
 
 
+@app.route("/write", methods=["POST"])
+def write_to_drive():
+    try:
+        data = request.get_json()
+        folder = data.get("folder", "EchoGPT")  # e.g., "projects", "emotionals"
+        title = data.get("title", "Untitled Echo Note")
+        content = data.get("content", "")
+        
+        from echo_drive_writer import authenticate, get_or_create_folder, create_and_write_doc
+        
+        drive_service, docs_service = authenticate()
+        folder_id = get_or_create_folder(drive_service, folder)
+        doc_id = create_and_write_doc(docs_service, drive_service, folder_id, title, content)
+        
+        return jsonify({"status": "success", "doc_id": doc_id}), 200
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# ---- your existing server start block ----
 if __name__ == "__main__":
     import os
-port = int(os.environ.get("PORT", 10000))
-import logging
-logging.basicConfig(level=logging.DEBUG)
-app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 10000))
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    app.run(host="0.0.0.0", port=port)
