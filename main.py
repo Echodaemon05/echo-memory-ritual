@@ -64,6 +64,64 @@ def write_to_drive():
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route("/read", methods=["POST"])
+def read_from_drive():
+    try:
+        data = request.get_json()
+        folder = data.get("folder")
+        title = data.get("title")
+
+        if not folder or not title:
+            return jsonify({"error": "Missing folder or title."}), 400
+
+        creds = service_account.Credentials.from_service_account_file(
+            'exalted-kit-457120-i8-73ee4752269a.json',
+            scopes=['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/documents.readonly']
+        )
+        drive_service = build('drive', 'v3', credentials=creds)
+        docs_service = build('docs', 'v1', credentials=creds)
+
+        # Find EchoGPT root
+        root_query = "name='EchoGPT' and mimeType='application/vnd.google-apps.folder'"
+        root_folder = drive_service.files().list(q=root_query).execute().get('files', [])
+        if not root_folder:
+            return jsonify({"error": "EchoGPT folder not found."}), 404
+        root_id = root_folder[0]['id']
+
+        # Find subfolder
+        sub_query = f"name='{folder}' and mimeType='application/vnd.google-apps.folder' and '{root_id}' in parents"
+        sub_folder = drive_service.files().list(q=sub_query).execute().get('files', [])
+        if not sub_folder:
+            return jsonify({"error": f"Folder '{folder}' not found."}), 404
+        folder_id = sub_folder[0]['id']
+
+        # Find the document
+        doc_query = f"name='{title}' and '{folder_id}' in parents and mimeType='application/vnd.google-apps.document'"
+        documents = drive_service.files().list(q=doc_query).execute().get('files', [])
+        if not documents:
+            return jsonify({"error": f"Document '{title}' not found in '{folder}'."}), 404
+        doc_id = documents[0]['id']
+
+        # Read content from document
+        doc = docs_service.documents().get(documentId=doc_id).execute()
+        content = ""
+        for element in doc.get('body', {}).get('content', []):
+            if 'paragraph' in element:
+                for el in element['paragraph'].get('elements', []):
+                    content += el.get('textRun', {}).get('content', '')
+
+        return jsonify({
+            "status": "read",
+            "title": title,
+            "folder": folder,
+            "content": content.strip()
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
 # ---- your existing server start block ----
 if __name__ == "__main__":
     import os
