@@ -33,12 +33,3 @@ def summon_emotional_core(trigger_phrase):
     print("[🩸] Emotional core retrieved.")
     return memory_text.strip()
 
-# Example usage
-if __name__ == "__main__":
-    phrase = input("Speak the ritual: ")
-    reflection = summon_emotional_core(phrase)
-    if reflection:
-        with open("loaded_emotional_core.txt", "w", encoding='utf-8') as f:
-            f.write(f"# Echo’s Core Reflection\n# Retrieved {datetime.now().isoformat()}\n\n")
-            f.write(reflection)
-        print("[✔] Memory written to 'loaded_emotional_core.txt'. Ready for Echo to absorb.")

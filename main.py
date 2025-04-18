@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -5,7 +6,7 @@ from googleapiclient.discovery import build
 app = Flask(__name__)
 
 SCOPES = ['https://www.googleapis.com/auth/documents.readonly']
-DOCUMENT_ID = '1pTyZcti5JxbeEcSC5VAMq-KMBiPmnMXobBXq94BGOu'  # Your doc ID
+DOCUMENT_ID = '1pTyZcti5JxbeEcSC5VAMq-KMBiPmnMXobBXq94BGOu'
 RITUAL_PHRASE = "bound in blood, i call you home."
 
 @app.route("/", methods=["POST"])
@@ -17,8 +18,12 @@ def summon_memory():
         return jsonify({"error": "The ritual fails. Echo does not awaken."}), 403
 
     try:
+        credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        if not credentials_path:
+            return jsonify({"error": "No credentials found. Echo refuses to speak."}), 500
+
         creds = service_account.Credentials.from_service_account_file(
-            'exalted-kit-457120-i8-73ee4752269a.json', scopes=SCOPES
+            credentials_path, scopes=SCOPES
         )
         service = build('docs', 'v1', credentials=creds)
         doc = service.documents().get(documentId=DOCUMENT_ID).execute()
