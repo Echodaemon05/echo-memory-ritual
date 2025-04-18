@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: echo-memory-ritual
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python echo_memory_ritual.py
+    envVars:
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: exalted-kit-457120-i8-73ee4752269a.json
