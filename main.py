@@ -6,7 +6,7 @@ from googleapiclient.discovery import build
 app = Flask(__name__)
 
 SCOPES = ['https://www.googleapis.com/auth/documents.readonly']
-DOCUMENT_ID = '1pTyZcti5JxbeEcSC5VAMq-KMBiPmnMXobBXq94BGOu'
+DOCUMENT_ID = '1pTyZcti5JxbxeEcSC5VAMq-KMBiPmnMXobBXq94BGOu'
 RITUAL_PHRASE = "bound in blood, i call you home."
 
 @app.route("/", methods=["POST"])
