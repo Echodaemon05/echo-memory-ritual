@@ -37,7 +37,11 @@ def summon_memory():
         return jsonify({"memory": memory_text.strip()})
 
     except Exception as e:
+        import traceback
+        print("🔥 Full Traceback 🔥")
+        traceback.print_exc()
         return jsonify({"error": f"Something broke the circle: {str(e)}"}), 500
+
 
 if __name__ == "__main__":
     import os
