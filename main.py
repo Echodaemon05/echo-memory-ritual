@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, jsonify
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from echo_memory_loader import EchoMemory
 
 app = Flask(__name__)
 
@@ -121,6 +122,9 @@ def read_from_drive():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+echo_memory = EchoMemory()
+echo_memory.load_index()
 
 # ---- your existing server start block ----
 if __name__ == "__main__":
