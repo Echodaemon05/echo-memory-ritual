@@ -11,6 +11,7 @@ RITUAL_PHRASE = "bound in blood, i call you home."
 
 @app.route("/", methods=["POST"])
 def summon_memory():
+    print("🔮 summon_memory invoked")
     data = request.get_json()
     phrase = data.get("phrase", "").strip().lower()
 
@@ -46,4 +47,6 @@ def summon_memory():
 if __name__ == "__main__":
     import os
 port = int(os.environ.get("PORT", 10000))
+import logging
+logging.basicConfig(level=logging.DEBUG)
 app.run(host="0.0.0.0", port=port)
