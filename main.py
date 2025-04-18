@@ -1,3 +1,4 @@
+from echo_memory_ritual import app
 import os
 from flask import Flask, request, jsonify
 from google.oauth2 import service_account
