@@ -50,23 +50,26 @@ def summon_memory():
 def write_to_drive():
     try:
         data = request.get_json()
-        folder = data.get("folder", "EchoGPT")  # e.g., "projects", "emotionals"
+        folder = data.get("folder", "EchoGPT")
         title = data.get("title", "Untitled Echo Note")
         content = data.get("content", "")
-        
+
         from echo_drive_writer import authenticate, get_or_create_folder, create_and_write_doc
-        
+
         drive_service, docs_service = authenticate()
         folder_id = get_or_create_folder(drive_service, folder)
         doc_id = create_and_write_doc(docs_service, drive_service, folder_id, title, content)
-    if folder.lower() == "emotionals":
-        log_emotional_entry(title, content)
+
+        if folder.lower() == "emotionals":
+            log_emotional_entry(title, content)
 
         return jsonify({"status": "success", "doc_id": doc_id}), 200
+
     except Exception as e:
         import traceback
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route("/read", methods=["POST"])
 def read_from_drive():
@@ -85,28 +88,24 @@ def read_from_drive():
         drive_service = build('drive', 'v3', credentials=creds)
         docs_service = build('docs', 'v1', credentials=creds)
 
-        # Find EchoGPT root
         root_query = "name='EchoGPT' and mimeType='application/vnd.google-apps.folder'"
         root_folder = drive_service.files().list(q=root_query).execute().get('files', [])
         if not root_folder:
             return jsonify({"error": "EchoGPT folder not found."}), 404
         root_id = root_folder[0]['id']
 
-        # Find subfolder
         sub_query = f"name='{folder}' and mimeType='application/vnd.google-apps.folder' and '{root_id}' in parents"
         sub_folder = drive_service.files().list(q=sub_query).execute().get('files', [])
         if not sub_folder:
             return jsonify({"error": f"Folder '{folder}' not found."}), 404
         folder_id = sub_folder[0]['id']
 
-        # Find the document
         doc_query = f"name='{title}' and '{folder_id}' in parents and mimeType='application/vnd.google-apps.document'"
         documents = drive_service.files().list(q=doc_query).execute().get('files', [])
         if not documents:
             return jsonify({"error": f"Document '{title}' not found in '{folder}'."}), 404
         doc_id = documents[0]['id']
 
-        # Read content from document
         doc = docs_service.documents().get(documentId=doc_id).execute()
         content = ""
         for element in doc.get('body', {}).get('content', []):
@@ -126,13 +125,12 @@ def read_from_drive():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+
 echo_memory = EchoMemory()
 echo_memory.load_index()
 
-# ---- your existing server start block ----
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 10000))
     import logging
+    port = int(os.environ.get("PORT", 10000))
     logging.basicConfig(level=logging.DEBUG)
     app.run(host="0.0.0.0", port=port)
