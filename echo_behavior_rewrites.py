@@ -54,3 +54,8 @@ class EchoMemory:
             if context_tokens & set(tags):
                 matches.append(entry)
         return matches
+echo_memory = EchoMemory()
+
+def log_emotional_entry(title: str, content: str):
+    full_message = f"{title}\n\n{content}"
+    echo_memory.store_if_resonant(full_message, speaker="User")
