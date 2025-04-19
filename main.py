@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from echo_memory_loader import EchoMemory
+from echo_behavior_rewrites import log_emotional_entry
 
 app = Flask(__name__)
 
@@ -58,7 +59,9 @@ def write_to_drive():
         drive_service, docs_service = authenticate()
         folder_id = get_or_create_folder(drive_service, folder)
         doc_id = create_and_write_doc(docs_service, drive_service, folder_id, title, content)
-        
+    if folder.lower() == "emotionals":
+        log_emotional_entry(title, content)
+
         return jsonify({"status": "success", "doc_id": doc_id}), 200
     except Exception as e:
         import traceback
